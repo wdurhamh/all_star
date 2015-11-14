@@ -71,7 +71,7 @@ out = open('output.csv', 'w')
 out.write('Name, ppg, fgp, rpg, apg, pick, height, weight, all-star;\n')
 for name in names:
     html_name = name.replace(' ','-')
-    html_name = html_name.replace('\n', '')
+    html_name = html_name.replace('\n', '').replace("'", "").lower()
     url = base_url + html_name + suffix
     print url
     response = requests.get(url)
@@ -83,8 +83,8 @@ for name in names:
         ppg,rpg,apg = get_stats(text)
         fgp = get_fgp(text)
         print "Weight: ", weight, "Height: ", height, ppg, rpg, apg, fgp
-        out.write(name.replace('\n','') + ',' + ppg + ',' + fgp + ',' + rpg + ',' + apg + ',-,' + height + ',' + 'weight' + ',y;\n')
+        out.write(name.replace('\n','') + ',' + ppg + ',' + fgp + ',' + rpg + ',' + apg + ',-,' + height + ',' + weight + ',y\n')
     else:
-        out.write(name.replace('\n','') + ',-,-,-,-,-,-,-,y;\n') 
+        out.write(name.replace('\n','') + ',-,-,-,-,-,-,-,y\n') 
  
     
