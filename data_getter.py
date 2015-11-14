@@ -1,5 +1,6 @@
 import requests
 import re
+import sys
 
 def get_weight(text):
     weight_pos = text.find('Weight')
@@ -66,8 +67,13 @@ def get_fgp(text):
 base_url = 'http://www.sports-reference.com/cbb/players/'
 suffix = '-1.html'
 #read in names frmo raw_text
-names = open('raw_text', 'r')
-out = open('output.csv', 'w')
+name_file = sys.argv[1]
+out_file = sys.argv[2]
+mode = 'w'
+if len(sys.argv) >3 and (sys.argv[3] == '-a' or sys.argv[3] == '--append'):
+    mode = 'a'
+names = open(name_file, 'r')
+out = open(out_file, mode)
 out.write('Name, ppg, fgp, rpg, apg, pick, height, weight, all-star;\n')
 for name in names:
     html_name = name.replace(' ','-')
