@@ -1,6 +1,7 @@
 import requests
 import re
 import sys
+from bs4 import BeautifulSoup
 
 def get_weight(text):
     weight_pos = text.find('Weight')
@@ -25,7 +26,7 @@ def get_height(text):
     return str(feet_inches + inches)
 
 def get_stats(text):
-    stats_pos = text.find('Career:');
+    stats_pos = text.find('Career:')
     #Career: ### G, ##.# PPG ##  RPG, #.## APG
     #0123456
     pos = stats_pos +7
@@ -55,7 +56,7 @@ def get_stats(text):
         pos += 1
         char = text[pos]
     return ppg_string, rpg_string, apg_string
-    
+
 def get_fgp(text):
     beg = text.find('Career') + 300
     pos = text.find('Career', beg, len(text))
@@ -74,8 +75,24 @@ if len(sys.argv) >3 and (sys.argv[3] == '-a' or sys.argv[3] == '--append'):
     mode = 'a'
 names = open(name_file, 'r')
 out = open(out_file, mode)
-out.write('Name, ppg, fgp, rpg, apg, pick, height, weight, all-star;\n')
+out.write('Name, ppg, fgp, rpg, apg, height, weight, all-star;\n')
+
+allstar_ref = 'https://en.wikipedia.org/wiki/List_of_NBA_All-Stars'
+r = requests.get(allstar_ref)
+soup = BeautifulSoup(r.content)
+allstars = soup.find_all('span', {'class' : 'sortkey'})
+front_tag = '<span class="sortkey">'
+back_tag = '</span>'
+for i in range(len(allstars)):
+    start = len(front_tag)
+    end = len(allstars[i]) - len(back_tag) - 1
+    allstars[i] = ((str)(allstars[i]))[start:end]
+    #flip name format ASSUMES no multiple first/last names
+    current = allstars[i].split(', ')
+    allstars[i] = (str)(current[-1] + ' ' + current[0])
+
 for name in names:
+    name = name.replace('\n','')
     html_name = name.replace(' ','-')
     html_name = html_name.replace('\n', '').replace("'", "").lower()
     url = base_url + html_name + suffix
@@ -85,12 +102,20 @@ for name in names:
     text = re.sub('<[^>]+>', '', response.text)
     weight = get_weight(text)
     height = get_height(text)
+    isAllStar = 0
+#    print 'Finding', repr(name)
+#    print repr(allstars[128])
+    if name in allstars:
+        isAllStar = 'y'
+    else:
+        isAllStar = 'n'
+        
     if height != '' or weight != '':
         ppg,rpg,apg = get_stats(text)
         fgp = get_fgp(text)
-        print "Weight: ", weight, "Height: ", height, ppg, rpg, apg, fgp
-        out.write(name.replace('\n','') + ',' + ppg + ',' + fgp + ',' + rpg + ',' + apg + ',-,' + height + ',' + weight + ',y\n')
+        print "Weight: ", weight, "Height: ", height, ppg, rpg, apg, fgp, "AllStar: ", isAllStar
+        out.write(name + ',' + ppg + ',' + fgp + ',' + rpg + ',' + apg + ',' + height + ',' + weight + ',' + isAllStar +'\n')
     else:
-        out.write(name.replace('\n','') + ',-,-,-,-,-,-,-,y\n') 
+        out.write(name + ',-,-,-,-,-,-,y\n') 
  
     
