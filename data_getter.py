@@ -77,7 +77,7 @@ out = open(out_file, mode)
 out.write('Name, ppg, fgp, rpg, apg, pick, height, weight, all-star;\n')
 for name in names:
     html_name = name.replace(' ','-')
-    html_name = html_name.replace('\n', '').replace("'", "").lower()
+    html_name = html_name.replace('\n', '').replace("'", "").replace('.','').lower()
     url = base_url + html_name + suffix
     print url
     response = requests.get(url)
